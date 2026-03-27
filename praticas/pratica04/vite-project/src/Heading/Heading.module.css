@@ -1,0 +1,14 @@
+.heading {
+  background-color: brown;
+  color: white;
+}
+.cyanText {
+  color: rgb(0, 238, 255);
+}
+
+.heading {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  gap: 2.4rem;
+}
