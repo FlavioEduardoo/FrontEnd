@@ -5,9 +5,18 @@ import { DefaultInput } from '../DefaultInput';
 import { useRef } from 'react';
 import type { TaskModel } from '../../models/TaskModel';
 import { useTaskContext } from '../../contexts/TaskContext';
+import { getNextCycleType } from '../../utils/getNextCycleType';
+import { getNextCycle } from '../../utils/getNextCycle';
+
 
 export function MainForm() {
+  const { state, setState } = useTaskContext();
   const taskNameInput = useRef<HTMLInputElement>(null);
+  const nextCycle = getNextCycle(state.currentCycle);
+  const nextCycleType = getNextCycleType(nextCycle);
+
+
+
   function handleCreateNewTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -26,9 +35,10 @@ export function MainForm() {
       startDate: Date.now(),
       completeDate: null,
       interruptDate: null,
-      duration: 1,
-      type: 'workTime',
+      duration: state.config[nextCycleType],
+      type: nextCycleType,
     };
+
 
     const secondsRemaining = newTask.duration * 60;
 
@@ -37,14 +47,13 @@ export function MainForm() {
         ...prevState,
         config: { ...prevState.config },
         activeTask: newTask,
-        currentCycle: 1, // Conferir
+        currentCycle: nextCycle,
         secondsRemaining, // Conferir
         formattedSecondsRemaining: '00:00', // Conferir
         tasks: [...prevState.tasks, newTask],
       };
     });
   }
-  const { setState } = useTaskContext();
 
   function handleClick() {
     setState(prevState => {
@@ -74,9 +83,14 @@ export function MainForm() {
         <p>Próximo intervalo é de 25min</p>
       </div>
 
-      <div className='formRow'>
-        <Cycles />
-      </div>
+      {
+  /* Só renderiza a div com os ciclos SE o currentCycle for maior que zero */
+}
+      {state.currentCycle > 0 && (
+        <div className='formRow'>
+          <Cycles />
+        </div>
+      )}
 
       <div className='formRow'>
         <DefaultButton icon={<PlayCircleIcon />} />
