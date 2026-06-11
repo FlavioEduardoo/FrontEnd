@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+
 import { settingsRouter } from './routes/settings.routes';
 import { tasksRouter } from './routes/tasks.routes';
 
