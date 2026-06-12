@@ -7,12 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  tasks     Task[]
+  settings  Settings?
+  resetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
 model Settings {
   id             Int      @id @default(1)
   workTime       Int
   shortBreakTime Int
   longBreakTime  Int
   updatedAt      DateTime @updatedAt
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
 }
 
 model Task {
@@ -24,6 +47,8 @@ model Task {
   completeDate  BigInt?
   interruptDate BigInt?
   createdAt     DateTime  @default(now())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
 
   @@index([startDate])
 }

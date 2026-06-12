@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
+import type { AuthRequest } from '../middlewares/auth.middleware';
 
 export const tasksRouter = Router();
 
@@ -10,15 +11,19 @@ const serializeTask = (task: any) => ({
   interruptDate: task.interruptDate?.toString(),
 });
 
-tasksRouter.get('/', async (_req, res) => {
+tasksRouter.get('/', async (req: AuthRequest, res) => {
+  const userId = req.userId!;
+
   const tasks = await prisma.task.findMany({
+    where: { userId },
     orderBy: { startDate: 'desc' },
   });
 
   return res.json(tasks.map(serializeTask));
 });
 
-tasksRouter.post('/', async (req, res) => {
+tasksRouter.post('/', async (req: AuthRequest, res) => {
+  const userId = req.userId!;
   const { id, name, duration, type, startDate } = req.body as {
     id: string;
     name: string;
@@ -34,25 +39,29 @@ tasksRouter.post('/', async (req, res) => {
       duration,
       type,
       startDate: BigInt(startDate),
+      userId,
     },
   });
 
   return res.status(201).json(serializeTask(task));
 });
 
-tasksRouter.patch('/:id/complete', async (req, res) => {
+tasksRouter.patch('/:id/complete', async (req: AuthRequest, res) => {
+  const userId = req.userId!;
   const { id } = req.params;
   const { completeDate } = req.body as { completeDate: number };
 
   const task = await prisma.task.update({
-    where: { id },
+    where: { id, userId },
     data: { completeDate: BigInt(completeDate) },
   });
 
   return res.json(serializeTask(task));
 });
 
-tasksRouter.delete('/', async (_req, res) => {
-  await prisma.task.deleteMany();
+tasksRouter.delete('/', async (req: AuthRequest, res) => {
+  const userId = req.userId!;
+
+  await prisma.task.deleteMany({ where: { userId } });
   return res.status(204).send();
 });
