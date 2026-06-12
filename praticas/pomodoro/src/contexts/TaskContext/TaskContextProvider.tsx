@@ -8,10 +8,19 @@ import { loadBeep } from '../../utils/loadBeep';
 import type { TaskStateModel } from '../../models/TaskStateModel';
 
 const API_URL = 'http://localhost:3333';
+const TOKEN_KEY = 'chronos-token';
 
 type TaskContextProviderProps = {
   children: React.ReactNode;
 };
+
+function getAuthHeaders() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
   const [state, dispatch] = useReducer(taskReducer, initialTaskState, () => {
@@ -36,7 +45,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     fetch(`${API_URL}/tasks`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         id: lastTask.id,
         name: lastTask.name,
@@ -54,7 +63,7 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
 
     fetch(`${API_URL}/tasks/${completedTask.id}/complete`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ completeDate: completedTask.completeDate }),
     }).catch(console.error);
   }, [state.tasks, state.activeTask]);
